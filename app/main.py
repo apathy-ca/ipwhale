@@ -288,7 +288,8 @@ def index():
                          ipv6_asn=ipv6_asn,
                          remote_port=client_info['remote_port'],
                          user_agent=client_info['user_agent'],
-                         nat_detection=client_info['nat_detection'])
+                         nat_detection=client_info['nat_detection'],
+                         config=Config)
 
 @app.route('/api/ip')
 @handle_errors
