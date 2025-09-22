@@ -1,25 +1,30 @@
-FROM python:3.11-slim
+FROM python:3.11.9-slim
+
+# Create non-root user
+RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies with security updates
 RUN apt-get update && apt-get install -y \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get upgrade -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 # Copy requirements first for better caching
 COPY requirements.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY . .
+# Copy application code with proper ownership
+COPY --chown=appuser:appuser . .
 
-# Create non-root user for security
-RUN useradd -m -u 1000 ipwhale && chown -R ipwhale:ipwhale /app
-USER ipwhale
+# Switch to non-root user
+USER appuser
 
 # Expose port
 EXPOSE 5000
