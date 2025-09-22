@@ -221,9 +221,6 @@
                 <strong>🚨 NAT/Proxy Detection:</strong><br>
                 {{ nat_detection.explanation }}<br>
                 <small>
-                    {% if nat_detection.remote_addr %}
-                    <strong>Direct connection:</strong> {{ nat_detection.remote_addr }}<br>
-                    {% endif %}
                     {% if nat_detection.forwarded_for %}
                     <strong>X-Forwarded-For:</strong> {{ nat_detection.forwarded_for }}<br>
                     {% endif %}

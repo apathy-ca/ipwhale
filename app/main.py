@@ -141,10 +141,7 @@ def get_client_info():
             'real_ip': real_ip,
             'explanation': 'Client is behind NAT/proxy - multiple IP addresses detected'
         }
-        # Only include remote_addr for debugging if it's not a docker internal IP
-        remote_addr = request.remote_addr
-        if not (remote_addr.startswith('172.') or remote_addr.startswith('10.') or remote_addr.startswith('192.168.')):
-            nat_info['remote_addr'] = remote_addr
+        # Never include docker internal IPs in output
     
     return {
         'ip': client_ip,
