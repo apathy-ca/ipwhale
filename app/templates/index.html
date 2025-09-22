@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IP Whale! - Your IP Address Information</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='whale_eye_favicon.png') }}">
     <style>
         body {
             font-family: 'Courier New', monospace;
@@ -24,9 +25,11 @@
             text-align: center;
             margin-bottom: 30px;
         }
-        .whale-emoji {
-            font-size: 3em;
+        .whale-logo {
+            width: 120px;
+            height: 120px;
             margin-bottom: 10px;
+            border-radius: 10px;
         }
         h1 {
             color: #2c3e50;
@@ -136,7 +139,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="whale-emoji">🐋</div>
+            <img src="{{ url_for('static', filename='whale_eye_200x200.png') }}" alt="IP Whale Logo" class="whale-logo">
             <h1>IP Whale!</h1>
             <div class="subtitle">This website will tell you your IP[v4|v6] addresses.</div>
         </div>
@@ -218,7 +221,9 @@
                 <strong>🚨 NAT/Proxy Detection:</strong><br>
                 {{ nat_detection.explanation }}<br>
                 <small>
+                    {% if nat_detection.remote_addr %}
                     <strong>Direct connection:</strong> {{ nat_detection.remote_addr }}<br>
+                    {% endif %}
                     {% if nat_detection.forwarded_for %}
                     <strong>X-Forwarded-For:</strong> {{ nat_detection.forwarded_for }}<br>
                     {% endif %}

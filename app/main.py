@@ -127,7 +127,6 @@ def get_client_info():
     user_agent = request.headers.get('User-Agent', 'Unknown')
     
     # Detect if we're behind NAT by comparing different IP sources
-    remote_addr = request.remote_addr
     forwarded_for = request.headers.get('X-Forwarded-For')
     real_ip = request.headers.get('X-Real-IP')
     
@@ -138,11 +137,14 @@ def get_client_info():
         nat_detected = True
         nat_info = {
             'detected': True,
-            'remote_addr': remote_addr,
             'forwarded_for': forwarded_for,
             'real_ip': real_ip,
             'explanation': 'Client is behind NAT/proxy - multiple IP addresses detected'
         }
+        # Only include remote_addr for debugging if it's not a docker internal IP
+        remote_addr = request.remote_addr
+        if not (remote_addr.startswith('172.') or remote_addr.startswith('10.') or remote_addr.startswith('192.168.')):
+            nat_info['remote_addr'] = remote_addr
     
     return {
         'ip': client_ip,
