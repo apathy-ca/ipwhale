@@ -129,32 +129,37 @@ def get_client_info():
     # Detect if we're behind NAT by comparing different IP sources
     forwarded_for = request.headers.get('X-Forwarded-For')
     real_ip = request.headers.get('X-Real-IP')
-    
+    remote_addr = request.remote_addr
+
     nat_detected = False
     nat_info = {}
-    
+
     if forwarded_for or real_ip:
-        nat_detected = True
-        
-        # Check if we actually have multiple different IPs
+        # Collect all unique IPs from headers and remote_addr
         unique_ips = set()
         if forwarded_for:
             # X-Forwarded-For can contain multiple IPs separated by commas
             unique_ips.update(ip.strip() for ip in forwarded_for.split(','))
         if real_ip:
             unique_ips.add(real_ip)
-        
-        if len(unique_ips) > 1:
-            explanation = 'Client is behind NAT/proxy - multiple IP addresses detected'
-        else:
-            explanation = 'Client is behind NAT/proxy'
-        
-        nat_info = {
-            'detected': True,
-            'forwarded_for': forwarded_for,
-            'real_ip': real_ip,
-            'explanation': explanation
-        }
+        if remote_addr:
+            unique_ips.add(remote_addr)
+
+        # NAT is only detected if we have different IPs or if client_ip differs from remote_addr
+        if len(unique_ips) > 1 or (client_ip and remote_addr and client_ip != remote_addr):
+            nat_detected = True
+
+            if len(unique_ips) > 1:
+                explanation = 'Client is behind NAT/proxy - multiple IP addresses detected'
+            else:
+                explanation = 'Client is behind NAT/proxy'
+
+            nat_info = {
+                'detected': True,
+                'forwarded_for': forwarded_for,
+                'real_ip': real_ip,
+                'explanation': explanation
+            }
     
     return {
         'ip': client_ip,
