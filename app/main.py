@@ -4,7 +4,7 @@ IPWhale - IP Address Information Tool
 Inspired by ipquail.com and ipchicken.com functionality
 """
 
-from flask import Flask, request, jsonify, render_template, send_from_directory, make_response
+from flask import Flask, request, jsonify, render_template, send_from_directory
 import socket
 import dns.resolver
 import dns.reversename
@@ -17,7 +17,8 @@ from functools import wraps
 import traceback
 import os
 import sys
-import os
+import ipaddress
+from typing import Optional, Dict, List, Any, Union
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import Config
 
@@ -92,11 +93,11 @@ resolver.lifetime = Config.DNS_LIFETIME
 IPV4_REGEX = re.compile(r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$')
 IPV6_REGEX = re.compile(r'^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$')
 
-def is_valid_ipv4(ip):
+def is_valid_ipv4(ip: str) -> bool:
     """Validate IPv4 address format."""
     return bool(IPV4_REGEX.match(ip))
 
-def is_valid_ipv6(ip):
+def is_valid_ipv6(ip: str) -> bool:
     """Validate IPv6 address format."""
     try:
         socket.inet_pton(socket.AF_INET6, ip)
@@ -104,7 +105,7 @@ def is_valid_ipv6(ip):
     except socket.error:
         return False
 
-def get_client_ip():
+def get_client_ip() -> str:
     """Get the real client IP address, handling proxies and load balancers."""
     # Check for common proxy headers
     forwarded_ips = request.headers.get('X-Forwarded-For')
@@ -120,7 +121,7 @@ def get_client_ip():
     # Fallback to remote_addr
     return request.remote_addr
 
-def get_client_info():
+def get_client_info() -> Dict[str, Any]:
     """Get comprehensive client information including IP, port, and browser details."""
     client_ip = get_client_ip()
     remote_port = request.environ.get('REMOTE_PORT', 'Unknown')
@@ -168,7 +169,7 @@ def get_client_info():
         'nat_detection': nat_info if nat_detected else {'detected': False}
     }
 
-def lookup_ptr_record(ip):
+def lookup_ptr_record(ip: str) -> Optional[List[str]]:
     """Lookup PTR record for an IP address."""
     try:
         if is_valid_ipv4(ip):
@@ -184,7 +185,7 @@ def lookup_ptr_record(ip):
         app.logger.debug(f"PTR lookup failed for {ip}: {str(e)}")
         return None
 
-def lookup_asn(ip):
+def lookup_asn(ip: str) -> Optional[str]:
     """Lookup ASN information for an IP address using DNS-based lookups."""
     try:
         if is_valid_ipv4(ip):
@@ -195,7 +196,6 @@ def lookup_asn(ip):
         elif is_valid_ipv6(ip):
             # For IPv6, use origin6.asn.cymru.com
             # Convert IPv6 to expanded form and reverse nibbles
-            import ipaddress
             ipv6_obj = ipaddress.IPv6Address(ip)
             expanded = ipv6_obj.exploded.replace(':', '')
             reversed_nibbles = '.'.join(reversed(expanded))
@@ -216,7 +216,7 @@ def lookup_asn(ip):
         app.logger.debug(f"ASN lookup failed for {ip}: {str(e)}")
         return None
 
-def detect_ip_version(ip):
+def detect_ip_version(ip: str) -> Optional[int]:
     """Detect if an IP is IPv4 or IPv6."""
     if is_valid_ipv4(ip):
         return 4
